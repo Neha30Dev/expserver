@@ -36,36 +36,44 @@ int main(){
 	// Starting to listen
 	listen(listen_sock_fd, MAX_ACCEPT_BACKLOG);
 	printf("[INFO] Server listening on port %d\n", PORT);
-	// Creating an object of struct socketaddr_in
-	struct sockaddr_in client_addr;
-	socklen_t client_addr_len;
-	// Accept client connection
-	int conn_sock_fd = accept(listen_sock_fd, (struct sockaddr *)&client_addr, &client_addr_len);
-	printf("[INFO] Client connected to server\n");
 	while(1){
-		// Create buffer to store client message
-		char buff[BUFF_SIZE];
-		memset(buff, 0, BUFF_SIZE);
-		// Read message from client to buffer
-    	ssize_t read_n = recv(conn_sock_fd, buff, sizeof(buff), 0);
-		// Client closed connection or error occurred
-		if (read_n < 0) {
-		printf("[INFO] Error occured. Closing server\n");
-		close(conn_sock_fd);
-		exit(1);
+		// Creating an object of struct socketaddr_in
+		struct sockaddr_in client_addr;
+		socklen_t client_addr_len;
+		// Accept client connection
+		int conn_sock_fd = accept(listen_sock_fd, (struct sockaddr *)&client_addr, &client_addr_len);
+		if(conn_sock_fd < 0){
+			printf("[ERROR] Error occured.\n");
+			continue;
 		}
-		else if (read_n == 0) {
-		printf("[INFO] Client Disconnected. Closing server\n");
-		close(conn_sock_fd);
-		exit(1);
+		printf("[INFO] Client connected to server\n");
+		while(1){
+			// Create buffer to store client message
+			char buff[BUFF_SIZE];
+			memset(buff, 0, BUFF_SIZE);
+			// Read message from client to buffer
+			ssize_t read_n = recv(conn_sock_fd, buff, sizeof(buff), 0);
+			// Client closed connection or error occurred
+			if (read_n < 0) {
+				printf("[INFO] Error occured.\n");
+				break;
+			}
+			else if (read_n == 0) {
+				printf("[INFO] Client Disconnected.\n");
+				break;
+			}
+
+			// Print message from client
+			printf("[CLIENT MESSAGE] %s", buff);
+			// Sting reverse
+			strrev(buff);
+
+			// Sending reversed string to client
+			send(conn_sock_fd, buff, read_n, 0);
 		}
+		close(conn_sock_fd);
 
-		// Print message from client
-		printf("[CLIENT MESSAGE] %s", buff);
-		// Sting reverse
-		strrev(buff);
-
-		// Sending reversed string to client
-		send(conn_sock_fd, buff, read_n, 0);
 	}
+	close(listen_sock_fd);
+    return 0;
 }
