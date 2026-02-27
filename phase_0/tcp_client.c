@@ -34,7 +34,7 @@ int main() {
         // Get message from client terminal
         char *line;
         size_t line_len = 0;
-        ssize_t read_n = getline(&line, &line_len, stdin);
+        size_t read_n = getline(&line, &line_len, stdin);
 
         send(client_sock_fd, line, read_n, 0);
 
@@ -51,7 +51,7 @@ int main() {
 		}
 
         // Print message from cilent
-        printf("[SERVER MESSAGE] %s\n", buff);
+        printf("[SERVER MESSAGE] %s", buff);
     }
 
   return 0;

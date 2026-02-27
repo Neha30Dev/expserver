@@ -7,11 +7,11 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-#define PORT 555
+#define PORT 5555
 #define BUFF_SIZE 10000
 #define MAX_ACCEPT_BACKLOG 5
 
-// Function to reverse a string in-place
+//Function to reverse a string in-place
 void strrev(char *str) {
   for (int start = 0, end = strlen(str) - 2; start < end; start++, end--) {
     char temp = str[start];
@@ -52,15 +52,34 @@ int main(){
 			printf("[ERROR] Error occured.\n");
 			continue;
 		}
-		char client_ip[INET_ADDRSTRLEN];
-        inet_ntop(AF_INET,
-                  &client_addr.sin_addr,
-                  client_ip,
-                  sizeof(client_ip));
-		printf("[INFO] Client connected from port: %d and IP: %s\n",ntohs(client_addr.sin_port),client_ip);
+		printf("[INFO] Client connected from port: %d and IP: %s\n",ntohs(client_addr.sin_port),inet_ntoa(client_addr.sin_addr));
+		while(1){
+			// Create buffer to store client message
+			char buff[BUFF_SIZE];
+			memset(buff, 0, BUFF_SIZE);
+			// Read message from client to buffer
+			ssize_t read_n = recv(conn_sock_fd, buff, sizeof(buff), 0);
+			// Client closed connection or error occurred
+			if (read_n < 0) {
+				printf("[INFO] Error occured.\n");
+				break;
+			}
+			else if (read_n == 0) {
+				printf("[INFO] Client Disconnected.\n");
+				break;
+			}
+
+			// Print message from client
+			printf("[CLIENT MESSAGE] %s", buff);
+			// Sting reverse
+			strrev(buff);
+
+			// Sending reversed string to client
+			send(conn_sock_fd, buff, read_n, 0);
+		}
 		close(conn_sock_fd);
 
 	}
 	close(listen_sock_fd);
-    return 0;
+	return 0;
 }

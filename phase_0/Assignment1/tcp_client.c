@@ -19,11 +19,15 @@ int main() {
     char* server_ip=NULL;
     size_t len=0;
     getline(&server_ip,&len,stdin);
-    server_ip[strcspn(server_ip,"\n")]='\0';
-    char* server_port=NULL;
-    getline(&server_port,&len,stdin);
-    server_port[strcspn(server_port,"\n")]='\0';
-    int port=(int)strtol(server_port,NULL,10);
+    for (int i = 0; server_ip[i] != '\0'; i++) {
+        if (server_ip[i] == '\n') {
+            server_ip[i] = '\0';
+            break;
+        }
+    }
+    int server_port;
+    scanf("%d",&server_port);
+    getchar();
 
     // printf("%s",server_ip);
     // printf("%d",port);
@@ -31,7 +35,7 @@ int main() {
     // Setting up server addr
     server_addr.sin_family = AF_INET;
     server_addr.sin_addr.s_addr = inet_addr(server_ip);
-    server_addr.sin_port = htons(port);
+    server_addr.sin_port = htons(server_port);
 
     // Connect to tcp server
     if (connect(client_sock_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) != 0) {
@@ -41,29 +45,29 @@ int main() {
         printf("[INFO] Connected to tcp server\n");
     }
 
-    // while (1) {
-    //     // Get message from client terminal
-    //     char *line;
-    //     size_t line_len = 0;
-    //     ssize_t read_n = getline(&line, &line_len, stdin);
+    while (1) {
+        // Get message from client terminal
+        char *line;
+        size_t line_len = 0;
+        ssize_t read_n = getline(&line, &line_len, stdin);
 
-    //     send(client_sock_fd, line, read_n, 0);
+        send(client_sock_fd, line, read_n, 0);
 
-    //     char buff[BUFF_SIZE];
-    //     memset(buff, 0, BUFF_SIZE);
+        char buff[BUFF_SIZE];
+        memset(buff, 0, BUFF_SIZE);
 
-    //     // Read message from client to buffer
-    //     read_n =  recv(client_sock_fd, buff, BUFF_SIZE, 0);
+        // Read message from client to buffer
+        read_n =  recv(client_sock_fd, buff, BUFF_SIZE, 0);
 
-    //     if (read_n <= 0) {
-    //         printf("[INFO] Error occured. Closing client\n");
-    //         close(client_sock_fd);
-    //         exit(1);
-	// 	}
+        if (read_n <= 0) {
+            printf("[INFO] Error occured. Closing client\n");
+            close(client_sock_fd);
+            exit(1);
+		}
 
-    //     // Print message from cilent
-    //     printf("[SERVER MESSAGE] %s\n", buff);
-    // }
+        // Print message from cilent
+        printf("[SERVER MESSAGE] %s\n", buff);
+    }
 
   return 0;
 
