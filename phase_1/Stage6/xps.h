@@ -5,15 +5,15 @@
 #include <arpa/inet.h>
 #include <assert.h>
 #include <netdb.h>
-#include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdarg.h>
 #include <sys/epoll.h>
 #include <sys/socket.h>
 #include <unistd.h>
-#include <signal.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <signal.h>
 
 // 3rd party libraries
 #include "lib/vec/vec.h" // https://github.com/rxi/vec
@@ -22,8 +22,6 @@
 #define DEFAULT_BACKLOG 64
 #define MAX_EPOLL_EVENTS 32
 #define DEFAULT_BUFFER_SIZE 100000 // 100 KB
-#define DEFAULT_PIPE_BUFF_THRESH 1000000 // 1 MB
-#define DEFAULT_NULLS_THRESH 32
 
 // Error constants
 #define OK 0            // Success
@@ -39,40 +37,26 @@ typedef unsigned char u_char;
 typedef unsigned int u_int;
 typedef unsigned long u_long;
 
-// Structs
-struct xps_core_s;
-struct xps_loop_s;
+// Structures
 struct xps_listener_s;
 struct xps_connection_s;
-struct xps_buffer_s;
-struct xps_buffer_list_s;
-struct xps_pipe_s;
-struct xps_pipe_source_s;
-struct xps_pipe_sink_s;
 
 // Struct typedefs
-typedef struct xps_core_s xps_core_t;
-typedef struct xps_loop_s xps_loop_t;
 typedef struct xps_listener_s xps_listener_t;
 typedef struct xps_connection_s xps_connection_t;
-typedef struct xps_buffer_s xps_buffer_t;
-typedef struct xps_buffer_list_s xps_buffer_list_t;
-typedef struct xps_pipe_s xps_pipe_t;
-typedef struct xps_pipe_source_s xps_pipe_source_t;
-typedef struct xps_pipe_sink_s xps_pipe_sink_t;
 
-// Function typedefs
-typedef void (*xps_handler_t)(void *ptr);
+// Temporary declarations
+extern vec_void_t listeners;
+extern vec_void_t connections;
+int xps_loop_create();
+void xps_loop_attach(int epoll_fd, int fd, int events);
+void xps_loop_detach(int epoll_fd, int fd);
+void xps_loop_run(int epoll_fd);
 
-
- // xps headers
-#include "core/xps_core.h"
-#include "core/xps_loop.h"
-#include "core/xps_pipe.h"
+// xps headers
 #include "network/xps_connection.h"
 #include "network/xps_listener.h"
 #include "utils/xps_logger.h"
 #include "utils/xps_utils.h"
-#include "utils/xps_buffer.h"
 
 #endif

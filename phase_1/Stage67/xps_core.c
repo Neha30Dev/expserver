@@ -19,10 +19,8 @@ xps_core_t *xps_core_create() {
     core->loop = loop;
     vec_init(&(core->listeners));
     vec_init(&(core->connections));
-    vec_init(&(core->pipes));
     core->n_null_listeners = 0;
     core->n_null_listeners = 0;
-    core->n_null_pipes = 0;
 
     logger(LOG_DEBUG, "xps_core_create()", "created core");
 
@@ -47,20 +45,6 @@ void xps_core_destroy(xps_core_t *core) {
             xps_listener_destroy(listener); 
     }
     vec_deinit(&(core->listeners));
-
-    // Destroy pipes
-    for (int i = 0; i < core->pipes.length; i++) {
-        xps_pipe_t *pipe = core->pipes.data[i];
-        if (pipe != NULL)
-            if(pipe->sink != NULL){
-                xps_pipe_sink_destroy(pipe->sink);
-            }
-            if(pipe->source != NULL){
-                xps_pipe_source_destroy(pipe->source);
-            }
-            xps_pipe_destroy(pipe); 
-    }
-    vec_deinit(&(core->pipes));
 
     xps_loop_destroy(core->loop);
 

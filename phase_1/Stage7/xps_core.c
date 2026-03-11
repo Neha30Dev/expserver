@@ -19,10 +19,8 @@ xps_core_t *xps_core_create() {
     core->loop = loop;
     vec_init(&(core->listeners));
     vec_init(&(core->connections));
-    vec_init(&(core->pipes));
     core->n_null_listeners = 0;
     core->n_null_listeners = 0;
-    core->n_null_pipes = 0;
 
     logger(LOG_DEBUG, "xps_core_create()", "created core");
 
@@ -48,20 +46,6 @@ void xps_core_destroy(xps_core_t *core) {
     }
     vec_deinit(&(core->listeners));
 
-    // Destroy pipes
-    for (int i = 0; i < core->pipes.length; i++) {
-        xps_pipe_t *pipe = core->pipes.data[i];
-        if (pipe != NULL)
-            if(pipe->sink != NULL){
-                xps_pipe_sink_destroy(pipe->sink);
-            }
-            if(pipe->source != NULL){
-                xps_pipe_source_destroy(pipe->source);
-            }
-            xps_pipe_destroy(pipe); 
-    }
-    vec_deinit(&(core->pipes));
-
     xps_loop_destroy(core->loop);
 
     free(core);
@@ -71,15 +55,15 @@ void xps_core_destroy(xps_core_t *core) {
 
 void xps_core_start(xps_core_t *core) {
 
-  assert(core!=NULL);
+    assert(core!=NULL);
 
-  logger(LOG_DEBUG, "xps_start()", "starting core");
+    logger(LOG_DEBUG, "xps_start()", "starting core");
 
-  for(int port=8001;port<=8004;port++){
-    xps_listener_t *listener = xps_listener_create(core,"0.0.0.0",port);
-    logger(LOG_INFO, "main()", "Server listening on port %u", port);
-  }
+    for(int port=8001;port<=8004;port++){
+        xps_listener_t *listener = xps_listener_create(core,"0.0.0.0",port);
+        logger(LOG_INFO, "main()", "Server listening on port %u", port);
+    }
 
-  xps_loop_run(core->loop);
+    xps_loop_run(core->loop);
 
 }
