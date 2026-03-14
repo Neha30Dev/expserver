@@ -116,7 +116,7 @@ void connection_source_handler(void *ptr) {
     xps_pipe_source_t *source = ptr;
     xps_connection_t *connection = source->ptr;
 
-    xps_buffer_t *buff = xps_buffer_create(4096, 0, NULL);
+    xps_buffer_t *buff = xps_buffer_create(DEFAULT_BUFFER_SIZE, 0, NULL);
     if (buff == NULL) {
         logger(LOG_DEBUG, "connection_source_handler()", "xps_buffer_create() failed");
         return;
@@ -172,8 +172,8 @@ void connection_sink_handler(void *ptr) {
 
     xps_buffer_t *buff = xps_pipe_sink_read(sink, len);
     if (buff == NULL) {
-    logger(LOG_ERROR, "connection_sink_handler()", "xps_pipe_sink_read() failed");
-    return;
+        logger(LOG_ERROR, "connection_sink_handler()", "xps_pipe_sink_read() failed");
+        return;
     }
 
     // Write to socket

@@ -160,8 +160,10 @@ bool handle_pipes(xps_loop_t *loop) {
         xps_pipe_t *pipe = loop->core->pipes.data[i];
         if (pipe == NULL) continue;
 
-        /*Destroy the pipe if it has no source and sink and continue*/
-        if(pipe->source==NULL && pipe->sink==NULL) xps_pipe_destroy(pipe);
+        if(pipe->source==NULL && pipe->sink==NULL) {
+            xps_pipe_destroy(pipe);
+            continue;
+        }
 
         if (pipe->source && pipe->source->ready && xps_pipe_is_writable(pipe)){
             pipe->source->handler_cb(pipe->source);
@@ -205,9 +207,6 @@ bool handle_pipes(xps_loop_t *loop) {
 }
 
 void filter_nulls(xps_core_t *core) {
-/*check whether number of nulls in each of events, listeners, connections, pipes list
-    exceeds DEFAULT_NULLS_THRESH and filter nulls using vec_filter_null() and set
-    number of nulls in each list to 0*/
 
     if(core->loop->n_null_events > DEFAULT_NULLS_THRESH){
         vec_filter_null(&core->loop->events);

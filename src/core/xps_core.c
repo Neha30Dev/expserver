@@ -51,14 +51,15 @@ void xps_core_destroy(xps_core_t *core) {
     // Destroy pipes
     for (int i = 0; i < core->pipes.length; i++) {
         xps_pipe_t *pipe = core->pipes.data[i];
-        if (pipe != NULL)
+        if (pipe != NULL){
             if(pipe->sink != NULL){
                 xps_pipe_sink_destroy(pipe->sink);
             }
             if(pipe->source != NULL){
                 xps_pipe_source_destroy(pipe->source);
             }
-            xps_pipe_destroy(pipe); 
+            xps_pipe_destroy(pipe);
+        }
     }
     vec_deinit(&(core->pipes));
 
