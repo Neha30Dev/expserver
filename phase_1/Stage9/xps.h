@@ -44,12 +44,16 @@ struct xps_core_s;
 struct xps_loop_s;
 struct xps_listener_s;
 struct xps_connection_s;
+struct xps_buffer_s;
+struct xps_buffer_list_s;
 
 // Struct typedefs
 typedef struct xps_core_s xps_core_t;
 typedef struct xps_loop_s xps_loop_t;
 typedef struct xps_listener_s xps_listener_t;
 typedef struct xps_connection_s xps_connection_t;
+typedef struct xps_buffer_s xps_buffer_t;
+typedef struct xps_buffer_list_s xps_buffer_list_t;
 
 // Function typedefs
 typedef void (*xps_handler_t)(void *ptr);
@@ -61,5 +65,6 @@ typedef void (*xps_handler_t)(void *ptr);
 #include "network/xps_listener.h"
 #include "utils/xps_logger.h"
 #include "utils/xps_utils.h"
+#include "utils/xps_buffer.h"
 
 #endif

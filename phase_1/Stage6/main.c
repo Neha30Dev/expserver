@@ -15,7 +15,7 @@ int main() {
     vec_init(&connections);
 
     // Create listeners on ports 8001, 8002, 8003
-    for (int port = 8001; port <= 8003; port++) {
+    for (int port = 8001; port <= 8004; port++) {
         xps_listener_create(epoll_fd, "0.0.0.0", port);
         logger(LOG_INFO, "main()", "Server listening on port %u", port);
     }
