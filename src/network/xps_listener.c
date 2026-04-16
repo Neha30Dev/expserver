@@ -88,6 +88,7 @@ void xps_listener_destroy(xps_listener_t *listener) {
         xps_listener_t *curr = listeners->data[i];
         if (curr == listener) {
             listeners->data[i] = NULL;
+            listener->core->n_null_listeners++;
             break;
         }
     }
@@ -135,9 +136,16 @@ void listener_connection_handler(void* ptr) {
             close(conn_sock_fd);
             return;
         }
-        xps_pipe_create(listener->core, DEFAULT_PIPE_BUFF_THRESH, client->source, client->sink);
         client->listener = listener;
-        logger(LOG_INFO, "xps_listener_connection_handler()", "new connection");
-    
+
+        xps_session_t *session = xps_session_create(listener->core, client);
+        if (session == NULL) {
+            logger(LOG_ERROR, "listener_connection_handler()", "xps_session_create() failed");
+            xps_connection_destroy(client);
+            return;
+        }
+
+        logger(LOG_INFO, "listener_connection_handler()", "new connection");
     }
+
 }

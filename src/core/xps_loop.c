@@ -166,19 +166,25 @@ bool handle_pipes(xps_loop_t *loop) {
         }
 
         if (pipe->source && pipe->source->ready && xps_pipe_is_writable(pipe)){
+            logger(LOG_DEBUG, "handle_pipes()", "source handler");
             pipe->source->handler_cb(pipe->source);
         }
 
+
         if (pipe->sink && pipe->sink->ready && xps_pipe_is_readable(pipe)) {
+            logger(LOG_DEBUG, "handle_pipes()", "sink handler");
             pipe->sink->handler_cb(pipe->sink);
         }
 
+
         if (pipe->source && !pipe->sink) {
+            logger(LOG_DEBUG, "handle_pipes()", "close handler 1");
             pipe->source->active = false;
             pipe->source->close_cb(pipe->source);
         }
 
         if (pipe->sink && !pipe->source && !xps_pipe_is_readable(pipe)) {
+            logger(LOG_DEBUG, "handle_pipes()", "close handler 2");
             pipe->sink->active = false;
             pipe->sink->close_cb(pipe->sink);
         }
@@ -226,6 +232,11 @@ void filter_nulls(xps_core_t *core) {
     if(core->n_null_pipes > DEFAULT_NULLS_THRESH){
         vec_filter_null(&core->pipes);
         core->n_null_pipes = 0;
+    }
+
+    if(core->n_null_sessions > DEFAULT_NULLS_THRESH){
+        vec_filter_null(&core->sessions);
+        core->n_null_sessions = 0;
     }
 
 }

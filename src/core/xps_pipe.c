@@ -37,6 +37,8 @@ xps_pipe_t *xps_pipe_create(xps_core_t *core, size_t buff_thresh, xps_pipe_sourc
 void xps_pipe_destroy(xps_pipe_t *pipe) {
     assert(pipe != NULL);
 
+    logger(LOG_DEBUG, "xps_pipe_destroy()", "destroying pipe");
+
     vec_void_t *pipes = &pipe->core->pipes;
 
     for (int i = 0; i < pipes->length; i++) {
