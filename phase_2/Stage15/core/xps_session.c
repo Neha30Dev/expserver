@@ -150,7 +150,7 @@ void client_sink_handler(void *ptr) {
     //if(!http_req) logger(LOG_ERROR, "client_sink_handler()", "xps_http_req_create() failed");
     xps_buffer_destroy(buff);
     if(error!=OK) {
-      printf("Error code: %d\n", error);
+      //printf("Error code: %d\n", error);
       logger(LOG_ERROR, "client_sink_handler()", "xps_http_req_create() failed");
     }
     if (error == E_FAIL) {
@@ -371,16 +371,14 @@ void xps_session_destroy(xps_session_t *session) {
 
 void session_process_request(xps_session_t *session) {
   assert(session != NULL);
-  /*allocate a reply buffer that will store response*/
-  char reply[DEFAULT_BUFFER_SIZE];
+  xps_http_res_t *res = NULL;
   // BAD REQUEST
   if (session->http_req==NULL) {
-    sprintf(reply, "HTTP/1.1 400 Bad Request\n");
-    char *data = malloc(strlen(reply) + 1);
-    strcpy(data, reply);
-    xps_buffer_t *buff = xps_buffer_create(strlen(data), strlen(data), data);
+    res = xps_http_res_create(session->core, HTTP_BAD_REQUEST);
+    xps_buffer_t *buff = xps_http_res_serialize(res);
     /*set buff to to_client_buff*/
     set_to_client_buff(session,buff);
+    xps_http_res_destroy(res);
     return;
   }
 	if (session->http_req->path) {
@@ -395,33 +393,33 @@ void session_process_request(xps_session_t *session) {
 		by giving corresponding http response messages*/
     if (!session->file) {
       if (error == E_NOTFOUND) {
-        sprintf(reply, "HTTP/1.1 404 Not Found\r\n\r\n");
+        res = xps_http_res_create(session->core, HTTP_NOT_FOUND);
       } else if (error == E_PERMISSION) {
-        sprintf(reply, "HTTP/1.1 403 Forbidden\r\n\r\n");
+        res = xps_http_res_create(session->core, HTTP_FORBIDDEN );
       } else {
-        sprintf(reply, "HTTP/1.1 500 Internal Server Error\r\n\r\n");
+        res = xps_http_res_create(session->core, HTTP_INTERNAL_SERVER_ERROR);
       }
-      char *data = malloc(strlen(reply) + 1);
-      strcpy(data, reply);
-      xps_buffer_t *buff = xps_buffer_create(strlen(data), strlen(data), data);
+      xps_buffer_t *buff = xps_http_res_serialize(res);
       set_to_client_buff(session,buff);
+      xps_http_res_destroy(res);
       return;
     }
+    const char *mime = session->file->mime_type ? 
+                   session->file->mime_type : 
+                   "application/octet-stream";
+      res = xps_http_res_create(session->core, HTTP_OK);
+      char len_str[50];
+      sprintf(len_str, "%zu", session->file->size);
+      xps_http_set_header(&res->headers, "Content-Length", len_str);
+      xps_http_set_header(&res->headers, "Content-Type", mime);
+      printf("%s\n",mime);
+    xps_buffer_t *buff = xps_http_res_serialize(res);
 
-    if (session->file->mime_type) {
-      //printf("%s\n",session->file->mime_type);
-      sprintf(reply,
-              "HTTP/1.1 200 OK \nServer: eXpServer\nAccess-Control-Allow-Origin: "
-              "*\nContent-Length: %zu\nContent-Type: %s\n\n",
-              session->file->size, session->file->mime_type);
-    }
-    char *data = malloc(strlen(reply)+1);
-    strcpy(data, reply);
-    xps_buffer_t *buff = xps_buffer_create(strlen(data), strlen(data), data);
     /*set buff to to_client_buff*/
     set_to_client_buff(session, buff);
     /*create pipe with session->file->source and session->file_sink*/
 
     xps_pipe_create(session->core, DEFAULT_PIPE_BUFF_THRESH, session->file->source, session->file_sink);
+     xps_http_res_destroy(res);
   }
 }

@@ -43,26 +43,26 @@ int http_process_headers(xps_http_req_t *http_req, xps_buffer_t *buff) {
     vec_init(&http_req->headers);
     int error;
     while (1) {
-      error = xps_http_parse_header_line(http_req,buff);
-      if (error == E_FAIL || error == E_AGAIN)
-        break;
-      if (error == OK || error == E_NEXT) {
-        /* Alloc memory for new header*/
-        xps_keyval_t* header = malloc(sizeof(xps_keyval_t));
-        /*assign key,val from their corresponding start and end pointers*/
-        header->key = str_from_ptrs(http_req->header_key_start, http_req->header_key_end);
-        header->val = str_from_ptrs(http_req->header_val_start, http_req->header_val_end);
-        /*push this header into headers list of http_req*/
-        vec_push(&http_req->headers, header);
-        /*if error is E_NEXT continue*/
-        if(error == E_NEXT) continue;
-      }
-      printf("HEADERS\n");
+    error = xps_http_parse_header_line(http_req,buff);
+    if (error == E_FAIL || error == E_AGAIN)
+      break;
+    if (error == OK || error == E_NEXT) {
+      /* Alloc memory for new header*/
+      xps_keyval_t* header = malloc(sizeof(xps_keyval_t));
+      /*assign key,val from their corresponding start and end pointers*/
+      header->key = str_from_ptrs(http_req->header_key_start, http_req->header_key_end);
+      header->val = str_from_ptrs(http_req->header_val_start, http_req->header_val_end);
+      /*push this header into headers list of http_req*/
+      vec_push(&http_req->headers, header);
+      /*if error is E_NEXT continue*/
+      if(error == E_NEXT) continue;
+    }
+    printf("HEADERS\n");
       for (int i = 0; i < http_req->headers.length; i++) {
         xps_keyval_t *header = http_req->headers.data[i];
         printf("%s : %s\n", header->key,header->val);
       }
-      return OK;
+		return OK;
     }
     /*error occurs, thus iterate through header list, free each header*/
     vec_void_t* headers=&http_req->headers;
@@ -85,9 +85,18 @@ xps_buffer_t *xps_http_req_serialize(xps_http_req_t *http_req) {
 
   /* Serialize headers into a buffer headers_str*/
   xps_buffer_t *headers_str = xps_http_serialize_headers(&http_req->headers);
+  if (headers_str == NULL) {
+    logger(LOG_ERROR, "xps_http_req_serialize()", "failed to serialize headers");
+    return NULL;
+  }
   size_t final_len = strlen(http_req->request_line) + 1 + headers_str->len + 1;   /*Calculate length for final buffer*/
   /*Create instance for final buffer*/
   xps_buffer_t *buff = xps_buffer_create(final_len,0,NULL);
+  if (buff == NULL) {
+      logger(LOG_ERROR, "xps_http_res_serialize()", "failed to create buffer instance");
+      xps_buffer_destroy(headers_str);
+      return NULL;
+  }
   /*Copy everything to final buffer*/
   memcpy(buff->pos, http_req->request_line, strlen(http_req->request_line));
   buff->pos += strlen(http_req->request_line);
@@ -99,9 +108,7 @@ xps_buffer_t *xps_http_req_serialize(xps_http_req_t *http_req) {
   memcpy(buff->pos, "\n",1);
   buff->pos += 1;
 	/*destroy headers_str buffer*/
-  // buff->len = buff->pos - buff->data;
-  // buff->pos = buff->data;
-  xps_buffer_destroy(headers_str);
+    xps_buffer_destroy(headers_str);
   return buff;
 }
 
@@ -122,16 +129,17 @@ xps_http_req_t *xps_http_req_create(xps_core_t *core, xps_buffer_t *buff, int *e
     /*Process request line and handle possible errors*/
     if(rc!=OK){
         *error=rc;
-        free(http_req);
+        xps_http_req_destroy(core, http_req);
         return NULL;
     }
     /*Process headers and handle possible errors*/
     rc = http_process_headers(http_req,buff);
     if(rc!=OK){
         *error=rc;
-        free(http_req);
+        xps_http_req_destroy(core, http_req);
         return NULL;
     }
+    
         // Header length
     http_req->header_len = (size_t)(buff->pos - buff->data);
         // Body length is retrieved from header Content-Length

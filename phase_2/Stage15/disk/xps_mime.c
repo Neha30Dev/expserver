@@ -21,7 +21,7 @@ int n_mimes = sizeof(mime_types) / sizeof(mime_types[0]);
 
 const char *xps_get_mime(const char *file_path) {
     const char *ext = get_file_ext(file_path);
-
+    //printf("DEBUG mime: file_path=%s ext=%s\n", file_path, ext ? ext : "NULL");
     if (ext == NULL)
     return NULL;
 
